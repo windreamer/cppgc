@@ -17,17 +17,15 @@ namespace windreamer
 				{
 					return Allocator<U>();
 				}
+				template <triggers::TRIGGER_POINT>
+				static void trigger()
+				{
+					//do nothing
+				}
 
 				typedef typename ThreadingModel::Lock Lock;
 				struct Handle;
-				struct Controller 
-				{
-					template <triggers::TRIGGER_POINT>
-					static void trigger()
-					{
-						//do nothing
-					}
-				};
+				struct Controller {};
 				struct Wrapper
 				{
 					//所有引用计数对象的根对象
@@ -84,7 +82,7 @@ namespace windreamer
 					void decrease()
 					{
 						Lock lock;
-						
+
 						if (ptr==0) return;
 						--ptr->count;
 						Wrapper::check_delete(ptr);
@@ -93,7 +91,7 @@ namespace windreamer
 					void increase()
 					{
 						Lock lock;
-						
+
 						if(ptr==0) return;
 						++ptr->count;
 					}

@@ -1,6 +1,7 @@
 #ifndef __MARK_SWEEP_H__
 #define __MARK_SWEEP_H__
 #include <new>
+#include <cstdlib>
 #include <set>
 #include <stack>
 #include <algorithm>
@@ -16,25 +17,12 @@ namespace windreamer
 			template <typename Trigger=triggers::Manual,template<typename> class Allocator=std::allocator, typename ThreadingModel=thread::policy::SingleThread>
 			struct MarkSweep
 			{
-				template <typename U>
-				static Allocator<U> makeAllocator()
-				{
-					return Allocator<U>();
-				}
-
 				typedef typename ThreadingModel::Lock Lock;
 				struct Handle;
 
 				struct Controller
 				{
-					template<triggers::TRIGGER_POINT t>
-					static void trigger()
-					{
-						if (Trigger::test(t))
-						{
-							forceGC();
-						}
-					}
+
 					static std::set<int> getRootSet()
 					{
 						std::set<int> result;
@@ -83,7 +71,7 @@ namespace windreamer
 							}
 
 						}
-						
+
 
 					}
 
@@ -115,6 +103,20 @@ namespace windreamer
 					}
 
 				};
+
+				template <typename U>
+				static Allocator<U> makeAllocator()
+				{
+					return Allocator<U>();
+				}
+				template<triggers::TRIGGER_POINT t>
+				static void trigger()
+				{
+					if (Trigger::test(t))
+					{
+						Controller::forceGC();
+					}
+				}
 
 				template <typename T>
 				struct Registry
@@ -148,12 +150,12 @@ namespace windreamer
 					{
 						return s.begin();
 					}
-					
+
 					std::set<int>::const_iterator end()
 					{
 						return s.end();
 					}
-					
+
 					int size()
 					{
 						return s.size();
@@ -200,6 +202,7 @@ namespace windreamer
 						:ptr(p),root(-1)
 					{
 						Registry<Handle>& reg=getRegistry();
+						static int temp(std::atexit(Controller::forceGC));
 						reg.insert(this);
 					}
 					virtual ~Handle()
@@ -269,7 +272,7 @@ namespace windreamer
 					}
 					friend struct Controller;
 				};
-
+			private:
 			};
 		}
 	}
