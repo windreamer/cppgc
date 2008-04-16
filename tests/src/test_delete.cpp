@@ -37,7 +37,7 @@ namespace tut
 	{
 		GC::Handle<existing> h=new GC::Wrapper<existing>();
 		ensure_equals("Constructed", exists, true);
-		h.~Handle<existing>();
+		h.~Handle();
 		ensure_equals("All destructed", exists, false);
 	}
 
@@ -48,7 +48,7 @@ namespace tut
 		GC::Handle<existing> h=new GC::Wrapper<existing>();
 		GC::Handle<existing> h1=h;
 		ensure_equals("Constructed", exists, true);
-		h.~Handle<existing>();
+		h.~Handle();
 		ensure_equals(exists, true);
 	}
 }
