@@ -24,44 +24,44 @@ namespace windreamer
 				}
 
 				typedef typename ThreadingModel::Lock Lock;
-				struct Handle;
+				struct HandleBase;
 				struct Controller {};
-				struct Wrapper
+				struct WrapperBase
 				{
 					//所有引用计数对象的根对象
-					Wrapper():count(0){}
-					virtual ~Wrapper(){}
+					WrapperBase():count(0){}
+					virtual ~WrapperBase(){}
 				protected:
-					static void check_delete(Wrapper* ptr)
+					static void check_delete(WrapperBase* ptr)
 					{
 						if(ptr->count==0)
 							delete ptr;
 					}
 				private:
 					long count;
-					friend struct Handle;
+					friend struct HandleBase;
 					virtual size_t getSize()=0;
 
 				};
-				struct Handle
+				struct HandleBase
 				{
 					//引用计数的基类,模仿void*
-					Handle(Wrapper* p=0)
+					HandleBase(WrapperBase* p=0)
 						:ptr(p)
 					{
 						increase();
 					}
-					Handle(const Handle& rhs)
+					HandleBase(const HandleBase& rhs)
 						:ptr(0)
 					{
 						copy(rhs);
 					}
-					virtual ~Handle()
+					virtual ~HandleBase()
 					{
 						decrease();
 						ptr=0;
 					}
-					bool operator==(const Handle& rhs) const
+					bool operator==(const HandleBase& rhs) const
 					{
 						return ptr==rhs.ptr;
 					}
@@ -71,13 +71,13 @@ namespace windreamer
 						return ptr->count;
 					}
 				protected:
-					void copy (const Handle & rhs)
+					void copy (const HandleBase & rhs)
 					{
 						decrease();
 						ptr=rhs.ptr;
 						increase();
 					}
-					Wrapper* ptr;
+					WrapperBase* ptr;
 				private:
 					void decrease()
 					{
@@ -85,7 +85,7 @@ namespace windreamer
 
 						if (ptr==0) return;
 						--ptr->count;
-						Wrapper::check_delete(ptr);
+						WrapperBase::check_delete(ptr);
 
 					}
 					void increase()

@@ -18,7 +18,7 @@ namespace windreamer
 			struct MarkSweep
 			{
 				typedef typename ThreadingModel::Lock Lock;
-				struct Handle;
+				struct HandleBase;
 
 				struct Controller
 				{
@@ -26,14 +26,14 @@ namespace windreamer
 					static std::set<int> getRootSet()
 					{
 						std::set<int> result;
-						std::set<int>::const_iterator begin=Handle::getRegistry().begin();
-						std::set<int>::const_iterator end=Handle::getRegistry().end();
+						std::set<int>::const_iterator begin=HandleBase::getRegistry().begin();
+						std::set<int>::const_iterator end=HandleBase::getRegistry().end();
 						std::remove_copy_if(begin,end,std::insert_iterator<std::set<int> >(result,result.begin()),isNotRoot);
 						return result;
 					}
 					static int getWrapperCount()
 					{
-						return Wrapper::getRegistry().size();
+						return WrapperBase::getRegistry().size();
 					}
 					static void forceGC()
 					{
@@ -44,7 +44,7 @@ namespace windreamer
 				private:
 					static bool isNotRoot(int i)
 					{
-						return !((reinterpret_cast<Handle*>(i))->isRoot());
+						return !((reinterpret_cast<HandleBase*>(i))->isRoot());
 					}
 
 					static void mark()
@@ -59,12 +59,12 @@ namespace windreamer
 						{
 							int address=s.top();
 							s.pop();
-							Handle* ptr=reinterpret_cast<Handle*>(address);
+							HandleBase* ptr=reinterpret_cast<HandleBase*>(address);
 							ptr->ptr->alive=true;
 							std::set<int> members=ptr->getMemberHandles();
 							for (std::set<int>::const_iterator iter=members.begin();iter!=members.end();++iter)
 							{
-								if (!reinterpret_cast<Handle*>(*iter)->ptr->alive)
+								if (!reinterpret_cast<HandleBase*>(*iter)->ptr->alive)
 								{
 									s.push(*iter);
 								}
@@ -77,28 +77,28 @@ namespace windreamer
 
 					static void sweep()
 					{
-						for (std::set<int>::const_iterator it = Wrapper::getRegistry().begin(); it != Wrapper::getRegistry().end();)
+						for (std::set<int>::const_iterator it = WrapperBase::getRegistry().begin(); it != WrapperBase::getRegistry().end();)
 						{
-							Wrapper* ptr=reinterpret_cast<Wrapper*>(*it);
+							WrapperBase* ptr=reinterpret_cast<WrapperBase*>(*it);
 							it++;
-							Wrapper::check_delete(ptr);
+							WrapperBase::check_delete(ptr);
 						}
 
 					}
 					static void reset()
 					{
-						std::for_each(Wrapper::getRegistry().begin(),Wrapper::getRegistry().end(),resetAlive);
+						std::for_each(WrapperBase::getRegistry().begin(),WrapperBase::getRegistry().end(),resetAlive);
 					}
 
 					static void destroyDead(int p)
 					{
-						Wrapper* ptr=reinterpret_cast<Wrapper*>(p);
+						WrapperBase* ptr=reinterpret_cast<WrapperBase*>(p);
 						if(!ptr->alive)	delete ptr;
 					}
 
 					static void resetAlive(int p)
 					{
-						Wrapper* ptr=reinterpret_cast<Wrapper*>(p);
+						WrapperBase* ptr=reinterpret_cast<WrapperBase*>(p);
 						ptr->alive=false;
 					}
 
@@ -164,21 +164,21 @@ namespace windreamer
 					std::set<int> s;
 				};
 
-				struct Wrapper
+				struct WrapperBase
 				{
-					Wrapper()
+					WrapperBase()
 						:alive(false)
 					{
-						Registry<Wrapper>& reg=getRegistry();
+						Registry<WrapperBase>& reg=getRegistry();
 						reg.insert(this);
 					}
-					virtual ~Wrapper()
+					virtual ~WrapperBase()
 					{
-						Registry<Wrapper>& reg=getRegistry();
+						Registry<WrapperBase>& reg=getRegistry();
 						reg.erase(this);
 					}
 				protected:
-					static void check_delete(Wrapper * ptr)
+					static void check_delete(WrapperBase * ptr)
 					{
 						if (!ptr->alive)
 						{
@@ -187,36 +187,36 @@ namespace windreamer
 					}
 				private:
 					bool alive;
-					friend struct Handle;
+					friend struct HandleBase;
 					friend struct Controller;
-					static Registry<Wrapper>& getRegistry()
+					static Registry<WrapperBase>& getRegistry()
 					{
-						static Registry<Wrapper> reg;
+						static Registry<WrapperBase> reg;
 						return reg;
 					}
 					virtual size_t getSize()=0;
 				};
 
-				struct Handle{
-					Handle(Wrapper* p=0)
+				struct HandleBase{
+					HandleBase(WrapperBase* p=0)
 						:ptr(p),root(-1)
 					{
-						Registry<Handle>& reg=getRegistry();
+						Registry<HandleBase>& reg=getRegistry();
 						static int temp(std::atexit(Controller::forceGC));
 						reg.insert(this);
 					}
-					virtual ~Handle()
+					virtual ~HandleBase()
 					{
-						Registry<Handle>& reg=getRegistry();
+						Registry<HandleBase>& reg=getRegistry();
 						reg.erase(this);
 						ptr=0;
 					}
-					Handle(const Handle& rhs)
+					HandleBase(const HandleBase& rhs)
 						:ptr(0),root(-1)
 					{
 						copy(rhs);
 					}
-					bool operator==(const Handle& rhs) const
+					bool operator==(const HandleBase& rhs) const
 					{
 						return ptr==rhs.ptr;
 					}
@@ -225,7 +225,7 @@ namespace windreamer
 						if(root==-1)
 						{
 							int size=0;
-							Registry<Wrapper>& reg=Wrapper::getRegistry();
+							Registry<WrapperBase>& reg=WrapperBase::getRegistry();
 							int nthis=reinterpret_cast<int>(this);
 							std::set<int>::const_iterator i=reg.upper_bound(this);
 							if (i==reg.begin())
@@ -236,7 +236,7 @@ namespace windreamer
 							else
 							{
 								int address=*(--i);
-								Wrapper* p=reinterpret_cast<Wrapper*>(address);
+								WrapperBase* p=reinterpret_cast<WrapperBase*>(address);
 								size=p->getSize();
 								bool result= nthis>(address+size);
 								root=result;
@@ -258,16 +258,16 @@ namespace windreamer
 					}
 
 				protected:
-					void copy(const Handle & rhs)
+					void copy(const HandleBase & rhs)
 					{
 						ptr=rhs.ptr;
 					}
-					Wrapper* ptr;
+					WrapperBase* ptr;
 				private:
 					mutable int root;
-					static Registry<Handle>& getRegistry()
+					static Registry<HandleBase>& getRegistry()
 					{
-						static Registry<Handle> reg;
+						static Registry<HandleBase> reg;
 						return reg;
 					}
 					friend struct Controller;

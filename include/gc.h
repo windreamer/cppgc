@@ -14,7 +14,7 @@ namespace windreamer
 			typedef Algorithm Algo;
 			typedef typename Algo::Lock Lock;
 		public:
-			typedef typename Algo::Handle Void;
+			typedef typename Algo::HandleBase Void;
 			typedef typename Algo::Controller Controller;
 
 			template <typename T> class Handle;
@@ -23,7 +23,7 @@ namespace windreamer
 			//可回收对象包装类
 			template <typename T>
 			class Wrapper
-				:public Algo::Wrapper
+				:public Algo::WrapperBase
 			{
 				~Wrapper(){}
 			public:
@@ -65,46 +65,46 @@ namespace windreamer
 
 			template <typename T>
 			class Handle
-				:public Algo::Handle
+				:public Algo::HandleBase
 			{
 			public:
 				Handle()
-					:Algo::Handle(0)
+					:Algo::HandleBase(0)
 				{}
 				Handle(Wrapper<T>* p)
-					:Algo::Handle(p)
+					:Algo::HandleBase(p)
 				{}
 				Handle(const Handle& rhs)
-					:Algo::Handle(rhs)
+					:Algo::HandleBase(rhs)
 				{}
 				Handle& operator =(const Handle& rhs)
 				{
 					if (this==&rhs) return *this;
-					Algo::Handle::copy(rhs);
+					Algo::HandleBase::copy(rhs);
 					return *this;
 				}
 				T& operator *() const
 				{
-					if (Algo::Handle::ptr==0)
+					if (Algo::HandleBase::ptr==0)
 					{
 						return 0;
 					}
-					return static_cast<Wrapper<T>*>(Algo::Handle::ptr)->t;
+					return static_cast<Wrapper<T>*>(Algo::HandleBase::ptr)->t;
 				}
 				T* operator ->() const
 				{
-					if (Algorithm::Handle::ptr==0)
+					if (Algorithm::HandleBase::ptr==0)
 					{
 						return 0;
 					}
-					return &(static_cast<Wrapper<T>*>(Algo::Handle::ptr)->t);
+					return &(static_cast<Wrapper<T>*>(Algo::HandleBase::ptr)->t);
 				}
 
 				template <typename U>
 				operator Handle<U>()  const
 				{
 					sizeof(traits::CompileTimeChecker<traits::Conversion<T*,U*>::exists>);
-					return Handle<U>(static_cast<Wrapper<U>* >(Algo::Handle::ptr));
+					return Handle<U>(static_cast<Wrapper<U>* >(Algo::HandleBase::ptr));
 				}
 
 				//TODO:more operators
