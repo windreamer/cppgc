@@ -144,6 +144,10 @@ struct MarkSweep
     template <typename T>
     struct Registry
     {
+        virtual ~Registry()
+        {
+            Controller::forceGC();
+        }
         void insert(T* t)
         {
             Lock lock;
@@ -234,7 +238,6 @@ struct MarkSweep
             root(-1)
         {
             Registry<HandleBase>& reg = getRegistry();
-            static int setup_atexit(std::atexit(Controller::forceGC));
             reg.insert(this);
         }
 
