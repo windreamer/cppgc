@@ -5,6 +5,7 @@
 #include "trigger/manual.h"
 #include "trigger/trigger_common.h"
 
+#include <stdint.h>
 #include <algorithm>
 #include <cstdlib>
 #include <deque>
@@ -22,11 +23,7 @@ template <
 >
 struct MarkSweep
 {
-#ifdef __x86_64__
-    typedef unsigned long AddressType;
-#else
-    typedef unsigned int AddressType;
-#endif
+    typedef uintptr_t AddressType;
 
     typedef std::set<AddressType> AddressSet;
 
@@ -132,8 +129,8 @@ struct MarkSweep
         return Allocator<U>();
     }
 
-    template<triggers::TRIGGER_POINT t>
-    static void trigger()
+    template<typename T>
+    static void trigger(const T& t)
     {
         if (Trigger::test(t))
         {

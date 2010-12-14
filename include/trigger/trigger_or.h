@@ -10,7 +10,8 @@ namespace windreamer
 			template<typename T, typename U>
 			struct Or
 			{
-				static bool test(TRIGGER_POINT t)
+                template<typename Tag>
+				static bool test(const Tag& t)
 				{
 					return T::test(t)||U::test(t);
 				};

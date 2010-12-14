@@ -6,7 +6,8 @@ namespace windreamer
 	{
 		namespace triggers
 		{
-			enum TRIGGER_POINT{EVERY_NEW_START,OUT_OF_MEMORY};
+            struct OnStartMalloc{};
+            struct OnOutOfMemory{};
 		}
 	}
 }

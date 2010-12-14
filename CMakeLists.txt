@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 2.4)
 project (CPPGC)
 SET(EXECUTABLE_OUTPUT_PATH ${CPPGC_BINARY_DIR}/bin CACHE INTERNAL "Where to put the executables for CMake")
 SET(LIBRARY_OUTPUT_PATH ${CPPGC_BINARY_DIR}/lib CACHE INTERNAL "Where to put the libraries for CMake")

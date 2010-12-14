@@ -33,7 +33,7 @@ namespace windreamer
 				static void* operator new (size_t size) 
 				{
 					Lock lock;
-					Algo::template trigger<triggers::EVERY_NEW_START>();
+					Algo::trigger(triggers::OnStartMalloc());
 					void* result;
 					try
 					{
@@ -41,7 +41,7 @@ namespace windreamer
 					}
 					catch (const std::bad_alloc&)
 					{
-						Algo::template trigger<triggers::OUT_OF_MEMORY>();
+						Algo::trigger(triggers::OnOutOfMemory());
 						result=Algo::template makeAllocator<Wrapper>().allocate(1);
 					}
 					return result;

@@ -10,19 +10,22 @@ namespace windreamer
 			template<int N>
 			struct Counting 
 			{
-				static bool test (triggers::TRIGGER_POINT t)
-				{
-					static int counter=0;
-					if (t==triggers::EVERY_NEW_START)
-					{
-						if(++counter==N)
-						{
-							counter=0;
-							return true;
-						}
-					}
-					return false;
-				}
+                static bool test (const triggers::OnStartMalloc&)
+                {
+                    static int counter=0;
+                    if(++counter==N)
+                    {
+                        counter=0;
+                        return true;
+                    }
+                    return false;
+                }
+
+                template<typename T>
+                static bool test (const T&)
+                {
+                    return false;
+                }
 			};
 		}
 	}

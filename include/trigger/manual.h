@@ -9,7 +9,8 @@ namespace windreamer
 		{
 			struct Manual
 			{
-				static bool test(TRIGGER_POINT t)
+                template<typename T>
+				static bool test(const T&)
 				{
 					return false;
 				};

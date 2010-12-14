@@ -9,14 +9,16 @@ namespace windreamer
 		{
 			struct NewFail 
 			{
-				static bool test (triggers::TRIGGER_POINT t)
+				static bool test (const triggers::OnOutOfMemory&)
 				{
-					if (t==triggers::OUT_OF_MEMORY)
-					{
-							return true;
-					}
-					return false;
+                    return true;
 				}
+
+                template<typename T>
+                static bool test (const T&)
+                {
+                    return false;
+                }
 			};		
 		}
 	}

@@ -17,8 +17,8 @@ namespace windreamer
 				{
 					return Allocator<U>();
 				}
-				template <triggers::TRIGGER_POINT>
-				static void trigger()
+				template <typename Tag>
+				static void trigger(const Tag&)
 				{
 					//do nothing
 				}
@@ -38,7 +38,7 @@ namespace windreamer
 							delete ptr;
 					}
 				private:
-					long count;
+					size_t count;
 					friend struct HandleBase;
 					virtual size_t getSize()=0;
 
